@@ -6,23 +6,54 @@ services:
       - '27017:27017'
     volumes:
       - mongo-data:/data/db
+    networks:
+      - microservices-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - USER_SERVICE_URL=http://user-service:3001
+      - TASK_SERVICE_URL=http://task-service:3002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3003
+    depends_on:
+      - user-service
+      - task-service
+      - notification-service
+    networks:
+      - microservices-network
 
   user-service:
     build: ./user-service
     container_name: user-service
     ports:
       - '3001:3001'
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URL=mongodb://mongo:27017/users
     depends_on:
       - mongo
+    networks:
+      - microservices-network
 
   task-service:
     build: ./task-service
     container_name: task-service
     ports:
       - '3002:3002'
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URL=mongodb://mongo:27017/tasks
+      - RABBITMQ_URL=amqp://rabbitmq
+      - USER_SERVICE_URL=http://user-service:3001
     depends_on:
       - mongo
       - rabbitmq
+    networks:
+      - microservices-network
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -30,15 +61,27 @@ services:
     ports:
       - '5672:5672'
       - '15672:15672'
+    networks:
+      - microservices-network
 
   notification-service:
     build: ./notification-service
     container_name: notification-service
     ports:
       - '3003:3003'
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URL=mongodb://mongo:27017/notifications
+      - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
       - mongo
       - rabbitmq
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
 
 volumes:
   mongo-data:
