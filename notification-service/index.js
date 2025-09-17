@@ -26,6 +26,13 @@ const notificationSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+// Database indexes for optimized queries
+notificationSchema.index({ userId: 1 }); // For finding notifications by user
+notificationSchema.index({ createdAt: -1 }); // For sorting by creation date
+notificationSchema.index({ userId: 1, createdAt: -1 }); // Compound index for user notifications sorted by date
+notificationSchema.index({ type: 1, status: 1 }); // For filtering by type and status
+notificationSchema.index({ taskId: 1 }); // For finding notifications by task
+
 const Notification = mongoose.model('Notification', notificationSchema);
 
 let channel, connection;

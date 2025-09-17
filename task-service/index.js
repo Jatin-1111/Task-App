@@ -22,6 +22,11 @@ const taskSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+// Database indexes for optimized queries
+taskSchema.index({ userId: 1 }); // For finding tasks by user
+taskSchema.index({ createdAt: -1 }); // For sorting by creation date
+taskSchema.index({ userId: 1, createdAt: -1 }); // Compound index for user tasks sorted by date
+
 const Task = mongoose.model('Task', taskSchema);
 
 let channel, connection;
